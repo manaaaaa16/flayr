@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import type { Deck } from "@/lib/storage";
+import type { StreakData } from "@/lib/streaks";
 import type { User } from "@supabase/supabase-js";
 
 type Props = {
   decks: Deck[];
   user: User;
+  streak: StreakData;
   onNewScan: () => void;
   onOpenDeck: (deck: Deck) => void;
   onDeleteDeck: (id: string) => void;
@@ -25,7 +27,7 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString("en", { month: "short", day: "numeric" });
 }
 
-export default function HomeScreen({ decks, user, onNewScan, onOpenDeck, onDeleteDeck, onSignOut }: Props) {
+export default function HomeScreen({ decks, user, streak, onNewScan, onOpenDeck, onDeleteDeck, onSignOut }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function confirmDelete(id: string) {
@@ -51,15 +53,25 @@ export default function HomeScreen({ decks, user, onNewScan, onOpenDeck, onDelet
             <span className="text-white font-bold text-xl tracking-tight">Flayr</span>
           </div>
           <p className="text-white/40 text-sm mt-1">
-            Hey {user.user_metadata?.name?.split(" ")[0] || "there"} 👋
+            Hey {user.user_metadata?.name?.split(" ")[0] || "there"}
           </p>
         </div>
-        <button
-          onClick={onSignOut}
-          className="px-3 py-1.5 rounded-lg glass text-white/30 text-xs hover:text-white/60 transition-colors"
-        >
-          Sign out
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Streak badge */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass">
+            <span className="text-base">🔥</span>
+            <span className="text-white font-bold text-sm">{streak.currentStreak}</span>
+            {streak.freezeUsedThisWeek && (
+              <span className="text-blue-400 text-xs ml-0.5">❄️</span>
+            )}
+          </div>
+          <button
+            onClick={onSignOut}
+            className="px-3 py-1.5 rounded-lg glass text-white/30 text-xs hover:text-white/60 transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
 
       {/* New scan CTA */}

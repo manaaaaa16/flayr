@@ -11,6 +11,8 @@ import SaveDeckModal from "@/components/SaveDeckModal";
 import AuthScreen from "@/components/AuthScreen";
 import { loadDecks, saveDeck, deleteDeck, updateDeckCards } from "@/lib/storage";
 import type { Deck } from "@/lib/storage";
+import { loadStreak, recordStudySession } from "@/lib/streaks";
+import type { StreakData } from "@/lib/streaks";
 
 export type Flashcard = {
   id: string;
@@ -28,6 +30,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
+  const [streak, setStreak] = useState<StreakData>({ currentStreak: 0, longestStreak: 0, lastStudyDate: null, freezeUsedThisWeek: false });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -43,7 +46,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (user) refreshDecks();
+    if (user) {
+      refreshDecks();
+      loadStreak(user.id).then(setStreak);
+    }
   }, [user]);
 
   async function refreshDecks() {
@@ -111,6 +117,12 @@ export default function Home() {
     }
   }
 
+  async function handleQuizComplete() {
+    if (!user) return;
+    const updated = await recordStudySession(user.id);
+    setStreak(updated);
+  }
+
   async function handleGoHome() {
     setCards([]);
     setError(null);
@@ -152,6 +164,7 @@ export default function Home() {
               <HomeScreen
                 decks={decks}
                 user={user}
+                streak={streak}
                 onNewScan={() => setState("capture")}
                 onOpenDeck={handleOpenDeck}
                 onDeleteDeck={handleDeleteDeck}
@@ -178,6 +191,7 @@ export default function Home() {
                 cards={cards}
                 onCardsUpdated={handleCardsUpdated}
                 onBack={handleGoHome}
+                onQuizComplete={handleQuizComplete}
               />
             )}
           </>

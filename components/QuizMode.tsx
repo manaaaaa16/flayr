@@ -6,6 +6,7 @@ import type { Flashcard } from "@/app/page";
 type Props = {
   cards: Flashcard[];
   onBack: () => void;
+  onComplete: () => void;
 };
 
 type AnswerState = "idle" | "correct" | "wrong";
@@ -29,7 +30,7 @@ function buildQuestion(cards: Flashcard[], index: number) {
   return { card, options, correct: card.back };
 }
 
-export default function QuizMode({ cards, onBack }: Props) {
+export default function QuizMode({ cards, onBack, onComplete }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [answerState, setAnswerState] = useState<AnswerState>("idle");
@@ -58,6 +59,7 @@ export default function QuizMode({ cards, onBack }: Props) {
       setAnswerState("idle");
     } else {
       setFinished(true);
+      onComplete();
     }
   }
 
