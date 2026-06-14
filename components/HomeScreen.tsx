@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import type { Deck } from "@/lib/storage";
+import type { User } from "@supabase/supabase-js";
 
 type Props = {
   decks: Deck[];
+  user: User;
   onNewScan: () => void;
   onOpenDeck: (deck: Deck) => void;
   onDeleteDeck: (id: string) => void;
+  onSignOut: () => void;
 };
 
 function timeAgo(iso: string): string {
@@ -22,7 +25,7 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString("en", { month: "short", day: "numeric" });
 }
 
-export default function HomeScreen({ decks, onNewScan, onOpenDeck, onDeleteDeck }: Props) {
+export default function HomeScreen({ decks, user, onNewScan, onOpenDeck, onDeleteDeck, onSignOut }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function confirmDelete(id: string) {
@@ -47,8 +50,16 @@ export default function HomeScreen({ decks, onNewScan, onOpenDeck, onDeleteDeck 
             </div>
             <span className="text-white font-bold text-xl tracking-tight">Flayr</span>
           </div>
-          <p className="text-white/40 text-sm mt-1">Your flashcard library</p>
+          <p className="text-white/40 text-sm mt-1">
+            Hey {user.user_metadata?.name?.split(" ")[0] || "there"} 👋
+          </p>
         </div>
+        <button
+          onClick={onSignOut}
+          className="px-3 py-1.5 rounded-lg glass text-white/30 text-xs hover:text-white/60 transition-colors"
+        >
+          Sign out
+        </button>
       </div>
 
       {/* New scan CTA */}

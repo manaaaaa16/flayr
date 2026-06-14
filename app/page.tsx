@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
 import CameraCapture from "@/components/CameraCapture";
 import FlashcardDeck from "@/components/FlashcardDeck";
 import GeneratingScreen from "@/components/GeneratingScreen";
 import HomeScreen from "@/components/HomeScreen";
 import SaveDeckModal from "@/components/SaveDeckModal";
-import { loadDecks, saveDeck, deleteDeck, updateDeck } from "@/lib/storage";
+import AuthScreen from "@/components/AuthScreen";
+import { loadDecks, saveDeck, deleteDeck, updateDeckCards } from "@/lib/storage";
 import type { Deck } from "@/lib/storage";
 
 export type Flashcard = {
@@ -18,6 +21,8 @@ export type Flashcard = {
 type AppState = "home" | "capture" | "generating" | "naming" | "study";
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [state, setState] = useState<AppState>("home");
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -25,11 +30,26 @@ export default function Home() {
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
 
   useEffect(() => {
-    setDecks(loadDecks());
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  function refreshDecks() {
-    setDecks(loadDecks());
+  useEffect(() => {
+    if (user) refreshDecks();
+  }, [user]);
+
+  async function refreshDecks() {
+    if (!user) return;
+    const data = await loadDecks(user.id);
+    setDecks(data);
   }
 
   async function handleImageCaptured(imageBase64: string, mimeType: string) {
@@ -58,16 +78,13 @@ export default function Home() {
     }
   }
 
-  function handleSaveDeck(name: string) {
-    const deck: Deck = {
-      id: `deck-${Date.now()}`,
-      name,
-      createdAt: new Date().toISOString(),
-      cards,
-    };
-    saveDeck(deck);
-    setActiveDeckId(deck.id);
-    refreshDecks();
+  async function handleSaveDeck(name: string) {
+    if (!user) return;
+    const deck = await saveDeck(user.id, name, cards);
+    if (deck) {
+      setActiveDeckId(deck.id);
+      await refreshDecks();
+    }
     setState("study");
   }
 
@@ -81,25 +98,42 @@ export default function Home() {
     setState("study");
   }
 
-  function handleDeleteDeck(id: string) {
-    deleteDeck(id);
-    refreshDecks();
+  async function handleDeleteDeck(id: string) {
+    await deleteDeck(id);
+    await refreshDecks();
   }
 
-  function handleCardsUpdated(updated: Flashcard[]) {
+  async function handleCardsUpdated(updated: Flashcard[]) {
     setCards(updated);
     if (activeDeckId) {
-      updateDeck(activeDeckId, updated);
-      refreshDecks();
+      await updateDeckCards(activeDeckId, updated);
+      await refreshDecks();
     }
   }
 
-  function handleGoHome() {
+  async function handleGoHome() {
     setCards([]);
     setError(null);
     setActiveDeckId(null);
-    refreshDecks();
+    await refreshDecks();
     setState("home");
+  }
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    setDecks([]);
+    setState("home");
+  }
+
+  if (authLoading) {
+    return (
+      <main className="relative min-h-screen overflow-hidden">
+        <div className="fixed inset-0 bg-[#0a0a0f]" />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 rounded-full border-2 border-brand-500/30 border-t-brand-500 animate-spin" />
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -110,35 +144,43 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        {state === "home" && (
-          <HomeScreen
-            decks={decks}
-            onNewScan={() => setState("capture")}
-            onOpenDeck={handleOpenDeck}
-            onDeleteDeck={handleDeleteDeck}
-          />
-        )}
-        {state === "capture" && (
-          <CameraCapture
-            onImageCaptured={handleImageCaptured}
-            error={error}
-            onBack={() => setState("home")}
-          />
-        )}
-        {state === "generating" && <GeneratingScreen />}
-        {state === "naming" && (
-          <SaveDeckModal
-            cardCount={cards.length}
-            onSave={handleSaveDeck}
-            onSkip={handleSkipSave}
-          />
-        )}
-        {state === "study" && (
-          <FlashcardDeck
-            cards={cards}
-            onCardsUpdated={handleCardsUpdated}
-            onBack={handleGoHome}
-          />
+        {!user ? (
+          <AuthScreen />
+        ) : (
+          <>
+            {state === "home" && (
+              <HomeScreen
+                decks={decks}
+                user={user}
+                onNewScan={() => setState("capture")}
+                onOpenDeck={handleOpenDeck}
+                onDeleteDeck={handleDeleteDeck}
+                onSignOut={handleSignOut}
+              />
+            )}
+            {state === "capture" && (
+              <CameraCapture
+                onImageCaptured={handleImageCaptured}
+                error={error}
+                onBack={() => setState("home")}
+              />
+            )}
+            {state === "generating" && <GeneratingScreen />}
+            {state === "naming" && (
+              <SaveDeckModal
+                cardCount={cards.length}
+                onSave={handleSaveDeck}
+                onSkip={handleSkipSave}
+              />
+            )}
+            {state === "study" && (
+              <FlashcardDeck
+                cards={cards}
+                onCardsUpdated={handleCardsUpdated}
+                onBack={handleGoHome}
+              />
+            )}
+          </>
         )}
       </div>
     </main>
