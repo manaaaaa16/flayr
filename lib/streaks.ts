@@ -91,6 +91,11 @@ export async function recordStudySession(userId: string): Promise<StreakData> {
     longestStreak = Math.max(currentStreak, existing.longest_streak);
   }
 
+  const currentWeekNum = getWeekNumber(today);
+  const prevWeeklyQuizzes = existing?.week_reset_number === currentWeekNum
+    ? (existing?.weekly_quizzes || 0)
+    : 0;
+
   await supabase.from("streaks").upsert({
     user_id: userId,
     current_streak: currentStreak,
@@ -98,6 +103,8 @@ export async function recordStudySession(userId: string): Promise<StreakData> {
     last_study_date: todayStr,
     freeze_used_week: freezeUsedWeek,
     freeze_week_number: freezeWeekNumber,
+    weekly_quizzes: prevWeeklyQuizzes + 1,
+    week_reset_number: currentWeekNum,
   });
 
   return {
