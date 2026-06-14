@@ -40,7 +40,7 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
   }
 
   function markKnown() {
-    setKnownIds((s) => new Set([...s, current.id]));
+    setKnownIds((s) => new Set(Array.from(s).concat(current.id)));
     goNext();
   }
 
