@@ -77,7 +77,7 @@ export async function deleteDeck(id: string): Promise<void> {
 }
 
 export async function updateDeckBestScore(deckId: string, score: number): Promise<void> {
-  await supabase.rpc("update_best_score", { deck_id_input: deckId, new_score: score });
+  await supabase.from("decks").update({ best_score: score }).eq("id", deckId);
 }
 
 export async function updateDeckCards(
