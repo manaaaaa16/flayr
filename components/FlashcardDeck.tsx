@@ -11,7 +11,7 @@ type Props = {
   cards: Flashcard[];
   onCardsUpdated: (cards: Flashcard[]) => void;
   onBack: () => void;
-  onQuizComplete: () => void;
+  onQuizComplete: (scorePct: number) => void;
 };
 
 export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onBack, onQuizComplete }: Props) {
@@ -143,7 +143,7 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
       </div>
 
       {mode === "quiz" ? (
-        <QuizMode cards={cards} onBack={() => setMode("cards")} onComplete={onQuizComplete} />
+        <QuizMode cards={cards} onBack={() => setMode("cards")} onComplete={(pct) => onQuizComplete(pct)} />
       ) : (
         <>
           {/* Progress bar */}

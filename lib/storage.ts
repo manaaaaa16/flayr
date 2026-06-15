@@ -6,7 +6,16 @@ export type Deck = {
   name: string;
   createdAt: string;
   cards: Flashcard[];
+  bestScore: number | null;
 };
+
+export function getMastery(score: number | null): { label: string; color: string; emoji: string } | null {
+  if (score === null) return null;
+  if (score >= 90) return { label: "Diamond", color: "text-cyan-400", emoji: "💎" };
+  if (score >= 75) return { label: "Gold", color: "text-yellow-400", emoji: "🥇" };
+  if (score >= 50) return { label: "Silver", color: "text-slate-300", emoji: "🥈" };
+  return { label: "Bronze", color: "text-orange-400", emoji: "🥉" };
+}
 
 export async function loadDecks(userId: string): Promise<Deck[]> {
   const { data: decks, error } = await supabase
@@ -21,6 +30,7 @@ export async function loadDecks(userId: string): Promise<Deck[]> {
     id: d.id,
     name: d.name,
     createdAt: d.created_at,
+    bestScore: d.best_score ?? null,
     cards: (d.cards || [])
       .sort((a: { position: number }, b: { position: number }) => a.position - b.position)
       .map((c: { id: string; front: string; back: string }) => ({
@@ -57,12 +67,20 @@ export async function saveDeck(
     id: deck.id,
     name: deck.name,
     createdAt: deck.created_at,
+    bestScore: null,
     cards,
   };
 }
 
 export async function deleteDeck(id: string): Promise<void> {
   await supabase.from("decks").delete().eq("id", id);
+}
+
+export async function updateDeckBestScore(deckId: string, score: number): Promise<void> {
+  const { data } = await supabase.from("decks").select("best_score").eq("id", deckId).single();
+  if (data && (data.best_score === null || score > data.best_score)) {
+    await supabase.from("decks").update({ best_score: score }).eq("id", deckId);
+  }
 }
 
 export async function updateDeckCards(

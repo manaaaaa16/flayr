@@ -9,7 +9,7 @@ import GeneratingScreen from "@/components/GeneratingScreen";
 import HomeScreen from "@/components/HomeScreen";
 import SaveDeckModal from "@/components/SaveDeckModal";
 import AuthScreen from "@/components/AuthScreen";
-import { loadDecks, saveDeck, deleteDeck, updateDeckCards } from "@/lib/storage";
+import { loadDecks, saveDeck, deleteDeck, updateDeckCards, updateDeckBestScore } from "@/lib/storage";
 import type { Deck } from "@/lib/storage";
 import { loadStreak, recordStudySession } from "@/lib/streaks";
 import type { StreakData } from "@/lib/streaks";
@@ -127,10 +127,14 @@ export default function Home() {
     }
   }
 
-  async function handleQuizComplete() {
+  async function handleQuizComplete(scorePct: number) {
     if (!user) return;
     const updated = await recordStudySession(user.id);
     setStreak(updated);
+    if (activeDeckId) {
+      await updateDeckBestScore(activeDeckId, scorePct);
+      await refreshDecks();
+    }
   }
 
   async function handleGoHome() {

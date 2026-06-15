@@ -6,7 +6,7 @@ import type { Flashcard } from "@/app/page";
 type Props = {
   cards: Flashcard[];
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (scorePct: number) => void;
 };
 
 type AnswerState = "idle" | "correct" | "wrong";
@@ -59,7 +59,7 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
       setAnswerState("idle");
     } else {
       setFinished(true);
-      onComplete();
+      onComplete(Math.round(((score + (answerState === "correct" ? 1 : 0)) / cards.length) * 100));
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Deck } from "@/lib/storage";
+import { getMastery } from "@/lib/storage";
 import type { StreakData } from "@/lib/streaks";
 import type { User } from "@supabase/supabase-js";
 
@@ -149,7 +150,15 @@ export default function HomeScreen({ decks, user, streak, onNewScan, onOpenDeck,
 
                       <div className="flex-1 min-w-0">
                         <p className="text-white font-semibold text-sm truncate">{deck.name}</p>
-                        <p className="text-white/35 text-xs mt-0.5">{timeAgo(deck.createdAt)}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-white/35 text-xs">{timeAgo(deck.createdAt)}</p>
+                          {(() => {
+                            const m = getMastery(deck.bestScore);
+                            return m ? (
+                              <span className={`text-xs font-semibold ${m.color}`}>{m.emoji} {m.label}</span>
+                            ) : null;
+                          })()}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2">
