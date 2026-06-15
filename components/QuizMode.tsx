@@ -59,7 +59,7 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
       setAnswerState("idle");
     } else {
       setFinished(true);
-      onComplete(Math.round(((score + (answerState === "correct" ? 1 : 0)) / cards.length) * 100));
+      onComplete(Math.round((score / cards.length) * 100));
     }
   }
 
