@@ -60,7 +60,7 @@ export default function HomeScreen({ decks, user, streak, onNewScan, onOpenDeck,
         <div className="flex items-center gap-3">
           {/* Streak badge */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass">
-            <span className="text-base">🔥</span>
+            <span className={streak.currentStreak >= 30 ? "flame-xl" : streak.currentStreak >= 7 ? "flame-lg" : "text-base"}>🔥</span>
             <span className="text-white font-bold text-sm">{streak.currentStreak}</span>
             {streak.freezeUsedThisWeek && (
               <span className="text-blue-400 text-xs ml-0.5">❄️</span>

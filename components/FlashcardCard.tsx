@@ -13,16 +13,21 @@ type Props = {
 export default function FlashcardCard({ card, index, total, onEdit }: Props) {
   const [flipped, setFlipped] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [flyIn, setFlyIn] = useState(true);
+
   const [editSide, setEditSide] = useState<"front" | "back">("front");
   const [draftFront, setDraftFront] = useState(card.front);
   const [draftBack, setDraftBack] = useState(card.back);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
+    setFlyIn(true);
+    setFlipped(false);
     setDraftFront(card.front);
     setDraftBack(card.back);
     setEditing(false);
-    setFlipped(false);
+    const t = setTimeout(() => setFlyIn(false), 500);
+    return () => clearTimeout(t);
   }, [card.id]);
 
   useEffect(() => {
@@ -54,7 +59,7 @@ export default function FlashcardCard({ card, index, total, onEdit }: Props) {
   const setCurrentDraft = editSide === "front" ? setDraftFront : setDraftBack;
 
   return (
-    <div className="w-full px-5">
+    <div className={`w-full px-5 ${flyIn ? "card-fly-in" : ""}`}>
       {/* Card counter + edit controls */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-white/30 text-sm font-medium">

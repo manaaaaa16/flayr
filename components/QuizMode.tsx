@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import type { Flashcard } from "@/app/page";
+import Confetti from "./Confetti";
 
 type Props = {
   cards: Flashcard[];
@@ -30,12 +31,29 @@ function buildQuestion(cards: Flashcard[], index: number) {
   return { card, options, correct: card.back };
 }
 
+function CountUp({ value, duration = 800 }: { value: number; duration?: number }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const step = Math.ceil(value / (duration / 16));
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= value) { setDisplay(value); clearInterval(timer); }
+      else setDisplay(start);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [value, duration]);
+  return <>{display}</>;
+}
+
 export default function QuizMode({ cards, onBack, onComplete }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [answerState, setAnswerState] = useState<AnswerState>("idle");
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [shaking, setShaking] = useState(false);
+  const [confetti, setConfetti] = useState(false);
 
   const question = useMemo(
     () => buildQuestion(cards, currentIndex),
@@ -49,7 +67,12 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
     setSelected(option);
     const isCorrect = option === question.correct;
     setAnswerState(isCorrect ? "correct" : "wrong");
-    if (isCorrect) setScore((s) => s + 1);
+    if (isCorrect) {
+      setScore((s) => s + 1);
+    } else {
+      setShaking(true);
+      setTimeout(() => setShaking(false), 400);
+    }
   }
 
   function handleNext() {
@@ -58,8 +81,10 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
       setSelected(null);
       setAnswerState("idle");
     } else {
+      const finalPct = Math.round((score / cards.length) * 100);
       setFinished(true);
-      onComplete(Math.round((score / cards.length) * 100));
+      if (finalPct >= 50) setConfetti(true);
+      onComplete(finalPct);
     }
   }
 
@@ -71,9 +96,8 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
     setFinished(false);
   }
 
-  const pct = Math.round((score / cards.length) * 100);
-
   if (finished) {
+    const pct = Math.round((score / cards.length) * 100);
     const grade =
       pct >= 90 ? { label: "Excellent!", color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" } :
       pct >= 70 ? { label: "Good job!", color: "text-brand-500", bg: "bg-brand-500/10 border-brand-500/20" } :
@@ -82,8 +106,11 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
 
     return (
       <div className="flex flex-col items-center justify-center flex-1 px-6 text-center animate-fade-in">
+        <Confetti trigger={confetti} />
         <div className={`w-24 h-24 rounded-3xl border flex items-center justify-center mb-6 ${grade.bg}`}>
-          <span className={`text-4xl font-extrabold ${grade.color}`}>{pct}%</span>
+          <span className={`text-4xl font-extrabold ${grade.color} count-up`}>
+            <CountUp value={pct} />%
+          </span>
         </div>
 
         <h2 className="text-3xl font-extrabold tracking-tight">{grade.label}</h2>
@@ -92,12 +119,12 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
         </p>
 
         <div className="mt-8 grid grid-cols-2 gap-4 w-full max-w-xs">
-          <div className="glass rounded-2xl p-4 text-center">
-            <p className="text-3xl font-bold text-green-400">{score}</p>
+          <div className="glass rounded-2xl p-4 text-center count-up">
+            <p className="text-3xl font-bold text-green-400"><CountUp value={score} /></p>
             <p className="text-white/40 text-sm mt-1">Correct</p>
           </div>
-          <div className="glass rounded-2xl p-4 text-center">
-            <p className="text-3xl font-bold text-red-400">{cards.length - score}</p>
+          <div className="glass rounded-2xl p-4 text-center count-up" style={{ animationDelay: "0.1s" }}>
+            <p className="text-3xl font-bold text-red-400"><CountUp value={cards.length - score} /></p>
             <p className="text-white/40 text-sm mt-1">Wrong</p>
           </div>
         </div>
@@ -143,7 +170,7 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
       </div>
 
       {/* Question */}
-      <div className="px-5 mb-6 animate-slide-up" key={currentIndex}>
+      <div className={`px-5 mb-6 animate-slide-up ${shaking ? "shake" : ""}`} key={currentIndex}>
         <div className="glass rounded-3xl p-6 min-h-[130px] flex flex-col justify-center">
           <span className="text-brand-500/60 text-xs font-semibold uppercase tracking-widest mb-3 block">Question</span>
           <p className="text-white text-xl font-semibold leading-relaxed">{question.card.front}</p>
