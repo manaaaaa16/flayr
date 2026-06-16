@@ -133,17 +133,46 @@ export default function HomeScreen({ decks, user, streak, profile, onProfileUpda
       {/* Library */}
       <div className="mt-8 flex-1 animate-slide-up" style={{ animationDelay: "0.1s" }}>
         {decks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/4 border border-white/8 flex items-center justify-center mb-4">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="text-white/30">
-                <rect x="3" y="6" width="22" height="16" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-                <path d="M3 10H25" stroke="currentColor" strokeWidth="1.5"/>
-                <path d="M8 14H14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                <path d="M8 18H12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-              </svg>
+          <div className="flex flex-col items-center justify-center py-10 text-center animate-fade-in">
+            {/* Illustration */}
+            <div className="relative mb-8">
+              <div className="w-48 h-36 rounded-2xl bg-white/3 border border-white/8 flex items-center justify-center relative overflow-hidden">
+                {/* Fake card stack */}
+                <div className="absolute w-28 h-20 rounded-xl bg-brand-500/8 border border-brand-500/15" style={{ transform: "rotate(-6deg) translateY(4px)" }} />
+                <div className="absolute w-28 h-20 rounded-xl bg-brand-500/10 border border-brand-500/20" style={{ transform: "rotate(-2deg) translateY(2px)" }} />
+                <div className="w-28 h-20 rounded-xl bg-brand-500/15 border border-brand-500/25 flex flex-col items-start justify-center px-4 gap-2">
+                  <div className="w-16 h-2 rounded-full bg-brand-500/50" />
+                  <div className="w-12 h-2 rounded-full bg-white/20" />
+                  <div className="w-14 h-2 rounded-full bg-white/15" />
+                </div>
+              </div>
+              {/* Arrow pointing up to scan button */}
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
+                <div className="w-px h-5 bg-brand-500/30" />
+                <div className="w-1.5 h-1.5 rounded-full bg-brand-500/40" />
+              </div>
             </div>
-            <p className="text-white/40 font-medium">No decks yet</p>
-            <p className="text-white/20 text-sm mt-1">Scan some notes to get started</p>
+
+            <p className="text-white font-bold text-lg mb-2">Your library is empty</p>
+            <p className="text-white/35 text-sm leading-relaxed max-w-[220px]">
+              Tap <span className="text-brand-500 font-semibold">Scan new notes</span> above to create your first deck in seconds
+            </p>
+
+            {/* Steps */}
+            <div className="mt-8 flex flex-col gap-3 w-full max-w-xs">
+              {[
+                { n: "1", text: "Take a photo of your notes" },
+                { n: "2", text: "AI generates flashcards instantly" },
+                { n: "3", text: "Study, quiz, and track your progress" },
+              ].map((step) => (
+                <div key={step.n} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/3 border border-white/6">
+                  <div className="w-6 h-6 rounded-full bg-brand-500/15 border border-brand-500/25 flex items-center justify-center flex-shrink-0">
+                    <span className="text-brand-500 text-xs font-bold">{step.n}</span>
+                  </div>
+                  <p className="text-white/50 text-sm">{step.text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <>
