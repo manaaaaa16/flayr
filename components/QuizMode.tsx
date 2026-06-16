@@ -3,6 +3,9 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import type { Flashcard } from "@/app/page";
 import Confetti from "./Confetti";
+import MistakeReview from "./MistakeReview";
+
+type Mistake = { question: string; correctAnswer: string; userAnswer: string };
 
 type Props = {
   cards: Flashcard[];
@@ -54,6 +57,8 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
   const [finished, setFinished] = useState(false);
   const [shaking, setShaking] = useState(false);
   const [confetti, setConfetti] = useState(false);
+  const [mistakes, setMistakes] = useState<Mistake[]>([]);
+  const [showReview, setShowReview] = useState(false);
 
   const question = useMemo(
     () => buildQuestion(cards, currentIndex),
@@ -72,6 +77,11 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
     } else {
       setShaking(true);
       setTimeout(() => setShaking(false), 400);
+      setMistakes((m) => [...m, {
+        question: question.card.front,
+        correctAnswer: question.correct,
+        userAnswer: option,
+      }]);
     }
   }
 
@@ -94,6 +104,12 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
     setAnswerState("idle");
     setScore(0);
     setFinished(false);
+    setMistakes([]);
+    setConfetti(false);
+  }
+
+  if (showReview) {
+    return <MistakeReview mistakes={mistakes} onClose={() => setShowReview(false)} />;
   }
 
   if (finished) {
@@ -130,15 +146,23 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
         </div>
 
         <div className="mt-8 flex flex-col gap-3 w-full max-w-xs">
+          {mistakes.length > 0 && (
+            <button
+              onClick={() => setShowReview(true)}
+              className="w-full py-4 rounded-2xl bg-brand-500 text-white font-semibold text-base active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+            >
+              ✨ Review {mistakes.length} mistake{mistakes.length !== 1 ? "s" : ""} with AI
+            </button>
+          )}
           <button
             onClick={handleRestart}
-            className="w-full py-4 rounded-2xl bg-brand-500 text-white font-semibold text-base active:scale-[0.98] transition-transform"
+            className="w-full py-4 rounded-2xl glass border border-white/10 text-white font-semibold text-base active:scale-[0.98] transition-transform"
           >
             Retry Quiz
           </button>
           <button
             onClick={onBack}
-            className="w-full py-4 rounded-2xl glass text-white/70 font-medium text-base active:scale-[0.98] transition-transform"
+            className="w-full py-4 rounded-2xl glass text-white/50 font-medium text-base active:scale-[0.98] transition-transform"
           >
             Back to Flashcards
           </button>
