@@ -17,6 +17,7 @@ import { getOrCreateProfile } from "@/lib/friends";
 import type { Profile } from "@/lib/friends";
 import FriendsScreen from "@/components/FriendsScreen";
 import Onboarding from "@/components/Onboarding";
+import ScreenTransition from "@/components/ScreenTransition";
 
 export type Flashcard = {
   id: string;
@@ -38,6 +39,7 @@ export default function Home() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [tab, setTab] = useState<"home" | "friends">("home");
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [transitionDir, setTransitionDir] = useState<"forward" | "back">("forward");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -118,6 +120,7 @@ export default function Home() {
   }
 
   function handleOpenDeck(deck: Deck) {
+    setTransitionDir("forward");
     setCards(deck.cards);
     setActiveDeckId(deck.id);
     setState("study");
@@ -147,6 +150,7 @@ export default function Home() {
   }
 
   async function handleGoHome() {
+    setTransitionDir("back");
     setCards([]);
     setError(null);
     setActiveDeckId(null);
@@ -189,6 +193,7 @@ export default function Home() {
           <AuthScreen />
         ) : (
           <>
+            <ScreenTransition screenKey={state + tab} direction={transitionDir}>
             {/* Main screens */}
             {state === "home" && tab === "home" && profile && (
               <HomeScreen
@@ -197,7 +202,7 @@ export default function Home() {
                 streak={streak}
                 profile={profile}
                 onProfileUpdated={setProfile}
-                onNewScan={() => setState("capture")}
+                onNewScan={() => { setTransitionDir("forward"); setState("capture"); }}
                 onOpenDeck={handleOpenDeck}
                 onDeleteDeck={handleDeleteDeck}
                 onSignOut={handleSignOut}
@@ -210,7 +215,7 @@ export default function Home() {
               <CameraCapture
                 onImageCaptured={handleImageCaptured}
                 error={error}
-                onBack={() => setState("home")}
+                onBack={() => { setTransitionDir("back"); setState("home"); }}
               />
             )}
             {state === "generating" && <GeneratingScreen />}
@@ -230,6 +235,8 @@ export default function Home() {
                 language={profile?.language || "en"}
               />
             )}
+
+            </ScreenTransition>
 
             {/* Bottom tab bar — only show on home screens */}
             {state === "home" && (

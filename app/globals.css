@@ -87,6 +87,23 @@ body {
   animation: shimmer 1.5s infinite;
 }
 
+/* Screen transitions */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slide-out-right {
+  from { transform: translateX(0);    opacity: 1; }
+  to   { transform: translateX(100%); opacity: 0; }
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-30%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.screen-enter  { animation: slide-in-right 0.32s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.screen-back   { animation: slide-in-left  0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+
 /* Confetti particle */
 @keyframes confetti-fall {
   0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
