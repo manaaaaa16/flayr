@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 
+export const maxDuration = 30;
+
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
@@ -10,14 +12,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No mistakes provided" }, { status: 400 });
   }
 
-  const mistakeList = mistakes
+  const limited = mistakes.slice(0, 5);
+
+  const mistakeList = limited
     .map((m: { question: string; correctAnswer: string; userAnswer: string }, i: number) =>
       `${i + 1}. Question: "${m.question}"\n   Correct answer: "${m.correctAnswer}"\n   Student answered: "${m.userAnswer}"`
     )
     .join("\n\n");
 
   const message = await client.messages.create({
-    model: "claude-opus-4-8",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 1024,
     messages: [
       {

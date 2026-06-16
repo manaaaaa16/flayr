@@ -15,6 +15,7 @@ type Props = {
 
 export default function MistakeReview({ mistakes, onClose }: Props) {
   const [explanations, setExplanations] = useState<string[]>([]);
+  const limited = mistakes.slice(0, 5);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -24,7 +25,7 @@ export default function MistakeReview({ mistakes, onClose }: Props) {
         const res = await fetch("/api/explain", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mistakes }),
+          body: JSON.stringify({ mistakes: limited }),
         });
         const data = await res.json();
         console.log("explain response:", data);
@@ -61,7 +62,7 @@ export default function MistakeReview({ mistakes, onClose }: Props) {
 
       {loading && (
         <div className="flex flex-col gap-4">
-          {mistakes.map((_, i) => (
+          {limited.map((_, i) => (
             <div key={i} className="glass rounded-2xl p-5 animate-pulse">
               <div className="h-3 bg-white/10 rounded-full w-3/4 mb-3" />
               <div className="h-3 bg-white/6 rounded-full w-1/2 mb-6" />
@@ -81,7 +82,7 @@ export default function MistakeReview({ mistakes, onClose }: Props) {
 
       {!loading && !error && (
         <div className="flex flex-col gap-4">
-          {mistakes.map((m, i) => (
+          {limited.map((m, i) => (
             <div key={i} className="glass rounded-2xl p-5 animate-slide-up" style={{ animationDelay: `${i * 0.08}s` }}>
               {/* Question */}
               <p className="text-white/40 text-xs font-semibold uppercase tracking-widest mb-2">Question</p>
