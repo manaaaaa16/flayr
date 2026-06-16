@@ -46,11 +46,7 @@ export default function HomeScreen({ decks, user, streak, onNewScan, onOpenDeck,
       <div className="animate-fade-in flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-brand-500 flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1L8.5 5.5H13L9.25 8.5L10.5 13L7 10.5L3.5 13L4.75 8.5L1 5.5H5.5L7 1Z" fill="white"/>
-              </svg>
-            </div>
+            <img src="/logo.png" alt="Flayr" className="w-8 h-8 rounded-xl object-cover" />
             <span className="text-white font-bold text-xl tracking-tight">Flayr</span>
           </div>
           <p className="text-white/40 text-sm mt-1">

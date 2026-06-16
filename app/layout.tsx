@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  icons: { icon: "/logo.png", apple: "/logo.png" },
   title: "Flayr — Snap. Study. Done.",
   description: "Turn any photo of notes into instant flashcards with AI. Study smarter in seconds.",
   keywords: ["flashcards", "AI", "study", "notes", "anki"],
