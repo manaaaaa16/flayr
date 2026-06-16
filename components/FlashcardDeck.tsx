@@ -1,30 +1,48 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { Flashcard } from "@/app/page";
 import FlashcardCard from "./FlashcardCard";
 import QuizMode from "./QuizMode";
+import { loadProgress, recordAnswer, sortCardsByPriority, getDueCount } from "@/lib/spaced-repetition";
+import type { CardProgress } from "@/lib/spaced-repetition";
 
 type Mode = "cards" | "quiz";
 
 type Props = {
   cards: Flashcard[];
+  userId: string;
   onCardsUpdated: (cards: Flashcard[]) => void;
   onBack: () => void;
   onQuizComplete: (scorePct: number) => void;
   language: string;
 };
 
-export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onBack, onQuizComplete, language }: Props) {
+export default function FlashcardDeck({ cards: initialCards, userId, onCardsUpdated, onBack, onQuizComplete, language }: Props) {
   const [cards, setCards] = useState<Flashcard[]>(initialCards);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [knownIds, setKnownIds] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<Mode>("cards");
+  const [progress, setProgress] = useState<Map<string, CardProgress>>(new Map());
+  const [sortedCards, setSortedCards] = useState<Flashcard[]>(initialCards);
+  const [dueCount, setDueCount] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
-  const current = cards[currentIndex];
-  const progress = (currentIndex / cards.length) * 100;
+  useEffect(() => {
+    loadProgress(userId, initialCards.map(c => c.id)).then(p => {
+      setProgress(p);
+      const sorted = sortCardsByPriority(initialCards, p);
+      setSortedCards(sorted);
+      setDueCount(getDueCount(initialCards, p));
+    });
+  }, [userId]);
+
+  const activeCards = sortedCards;
+  const current = activeCards[currentIndex];
+  const progressPct = (currentIndex / activeCards.length) * 100;
+  const currentProgress = current ? progress.get(current.id) : undefined;
+  const level = currentProgress?.level ?? 0;
 
   function handleCardEdit(updated: Flashcard) {
     const next = cards.map((c) => (c.id === updated.id ? updated : c));
@@ -33,7 +51,7 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
   }
 
   function goNext() {
-    if (currentIndex < cards.length - 1) setCurrentIndex((i) => i + 1);
+    if (currentIndex < activeCards.length - 1) setCurrentIndex((i) => i + 1);
     else setCompleted(true);
   }
 
@@ -41,8 +59,16 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   }
 
-  function markKnown() {
+  async function markKnown() {
+    const updated = await recordAnswer(userId, current.id, true, level);
+    setProgress(p => new Map(p).set(current.id, updated));
     setKnownIds((s) => new Set(Array.from(s).concat(current.id)));
+    goNext();
+  }
+
+  async function markLearning() {
+    const updated = await recordAnswer(userId, current.id, false, level);
+    setProgress(p => new Map(p).set(current.id, updated));
     goNext();
   }
 
@@ -59,6 +85,9 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
     else goPrev();
   }
 
+  const levelColors = ["text-white/30", "text-orange-400", "text-yellow-400", "text-blue-400", "text-purple-400", "text-cyan-400"];
+  const levelLabels = ["New", "Level 1", "Level 2", "Level 3", "Level 4", "Mastered"];
+
   if (completed) {
     const knownCount = knownIds.size;
     return (
@@ -71,7 +100,7 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
         </div>
 
         <h2 className="text-3xl font-extrabold tracking-tight">Round complete!</h2>
-        <p className="text-white/40 mt-2 text-base">You went through all {cards.length} flashcards</p>
+        <p className="text-white/40 mt-2 text-base">You went through all {activeCards.length} flashcards</p>
 
         <div className="mt-8 grid grid-cols-2 gap-4 w-full max-w-xs">
           <div className="glass rounded-2xl p-4 text-center">
@@ -79,7 +108,7 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
             <p className="text-white/40 text-sm mt-1">Got it</p>
           </div>
           <div className="glass rounded-2xl p-4 text-center">
-            <p className="text-3xl font-bold text-yellow-400">{cards.length - knownCount}</p>
+            <p className="text-3xl font-bold text-yellow-400">{activeCards.length - knownCount}</p>
             <p className="text-white/40 text-sm mt-1">Still learning</p>
           </div>
         </div>
@@ -138,8 +167,10 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
           </button>
         </div>
 
-        <div className="w-10 h-10 flex items-center justify-center">
-          <span className="text-white/30 text-xs">{cards.length} cards</span>
+        <div className="w-16 h-10 flex items-center justify-end">
+          {dueCount > 0 && (
+            <span className="text-brand-500 text-xs font-semibold">{dueCount} due</span>
+          )}
         </div>
       </div>
 
@@ -148,29 +179,39 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
       ) : (
         <>
           {/* Progress bar */}
-          <div className="px-5 mb-6">
+          <div className="px-5 mb-2">
             <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-brand-500 to-purple-500 rounded-full transition-all duration-500"
-                style={{ width: `${progress}%` }}
+                style={{ width: `${progressPct}%` }}
               />
             </div>
           </div>
 
+          {/* Card level indicator */}
+          {current && (
+            <div className="px-5 mb-4 flex items-center justify-between">
+              <span className="text-white/20 text-xs">{currentIndex + 1} / {activeCards.length}</span>
+              <span className={`text-xs font-semibold ${levelColors[level]}`}>{levelLabels[level]}</span>
+            </div>
+          )}
+
           {/* Card */}
-          <div
-            className="flex-1 flex flex-col justify-center animate-slide-up"
-            key={current.id}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            <FlashcardCard
-              card={current}
-              index={currentIndex}
-              total={cards.length}
-              onEdit={handleCardEdit}
-            />
-          </div>
+          {current && (
+            <div
+              className="flex-1 flex flex-col justify-center animate-slide-up"
+              key={current.id}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <FlashcardCard
+                card={current}
+                index={currentIndex}
+                total={activeCards.length}
+                onEdit={handleCardEdit}
+              />
+            </div>
+          )}
 
           {/* Action buttons */}
           <div className="px-5 pt-6 pb-10">
@@ -188,7 +229,7 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
               )}
 
               <button
-                onClick={goNext}
+                onClick={markLearning}
                 className="flex-1 py-4 rounded-2xl glass border border-yellow-500/20 text-yellow-400 font-semibold text-sm active:scale-[0.98] transition-all active:bg-yellow-500/10 flex items-center justify-center gap-2"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

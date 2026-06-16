@@ -231,6 +231,7 @@ export default function Home() {
             {state === "study" && (
               <FlashcardDeck
                 cards={cards}
+                userId={user.id}
                 onCardsUpdated={handleCardsUpdated}
                 onBack={handleGoHome}
                 onQuizComplete={handleQuizComplete}
