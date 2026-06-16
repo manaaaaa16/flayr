@@ -16,6 +16,7 @@ import type { StreakData } from "@/lib/streaks";
 import { getOrCreateProfile } from "@/lib/friends";
 import type { Profile } from "@/lib/friends";
 import FriendsScreen from "@/components/FriendsScreen";
+import Onboarding from "@/components/Onboarding";
 
 export type Flashcard = {
   id: string;
@@ -36,6 +37,7 @@ export default function Home() {
   const [streak, setStreak] = useState<StreakData>({ currentStreak: 0, longestStreak: 0, lastStudyDate: null, freezeUsedThisWeek: false });
   const [profile, setProfile] = useState<Profile | null>(null);
   const [tab, setTab] = useState<"home" | "friends">("home");
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -44,7 +46,14 @@ export default function Home() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const newUser = session?.user ?? null;
+      setUser(newUser);
+      if (newUser && _event === "SIGNED_IN") {
+        const key = `flayr_onboarded_${newUser.id}`;
+        if (!localStorage.getItem(key)) {
+          setShowOnboarding(true);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -170,6 +179,12 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
+        {showOnboarding && (
+          <Onboarding onDone={() => {
+            if (user) localStorage.setItem(`flayr_onboarded_${user.id}`, "1");
+            setShowOnboarding(false);
+          }} />
+        )}
         {!user ? (
           <AuthScreen />
         ) : (
