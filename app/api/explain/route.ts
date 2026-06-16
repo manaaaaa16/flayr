@@ -48,7 +48,7 @@ Respond with ONLY valid JSON in this exact format:
     if (!jsonMatch) throw new Error("No JSON found");
     parsed = JSON.parse(jsonMatch[0]);
   } catch {
-    return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to parse AI response", raw: content.text }, { status: 500 });
   }
 
   return NextResponse.json({ explanations: parsed.explanations });

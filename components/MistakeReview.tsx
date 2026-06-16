@@ -27,12 +27,14 @@ export default function MistakeReview({ mistakes, onClose }: Props) {
           body: JSON.stringify({ mistakes }),
         });
         const data = await res.json();
+        console.log("explain response:", data);
         if (data.explanations) {
           setExplanations(data.explanations.map((e: { tip: string }) => e.tip));
         } else {
           setError(true);
         }
-      } catch {
+      } catch (e) {
+        console.error("explain error:", e);
         setError(true);
       } finally {
         setLoading(false);
