@@ -54,7 +54,7 @@ export default function HomeScreen({ decks, user, streak, profile, onProfileUpda
   }
 
   return (
-    <div className="flex flex-col min-h-screen px-5 pt-14 pb-10">
+    <div className="flex flex-col min-h-screen px-5 pt-14 pb-28">
       {/* Header */}
       <div className="animate-fade-in flex items-center justify-between">
         <div>
@@ -207,14 +207,14 @@ export default function HomeScreen({ decks, user, streak, profile, onProfileUpda
                       className="w-full glass rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left group"
                     >
                       {/* Card count badge */}
-                      <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/15 flex flex-col items-center justify-center flex-shrink-0">
-                        <span className="text-brand-500 font-bold text-lg leading-none">{deck.cards.length}</span>
-                        <span className="text-brand-500/60 text-[9px] font-medium uppercase tracking-wide mt-0.5">cards</span>
+                      <div className="w-14 h-14 rounded-xl bg-brand-500/10 border border-brand-500/15 flex flex-col items-center justify-center flex-shrink-0">
+                        <span className="text-brand-500 font-bold text-xl leading-none">{deck.cards.length}</span>
+                        <span className="text-brand-500/60 text-[10px] font-medium uppercase tracking-wide mt-0.5">cards</span>
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-semibold text-sm truncate">{deck.name}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-white font-semibold text-base truncate">{deck.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
                           <p className="text-white/35 text-xs">{timeAgo(deck.createdAt)}</p>
                           {(() => {
                             const m = getMastery(deck.bestScore);

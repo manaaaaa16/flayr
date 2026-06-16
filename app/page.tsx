@@ -18,6 +18,7 @@ import type { Profile } from "@/lib/friends";
 import FriendsScreen from "@/components/FriendsScreen";
 import Onboarding from "@/components/Onboarding";
 import ScreenTransition from "@/components/ScreenTransition";
+import { haptic } from "@/lib/haptics";
 
 export type Flashcard = {
   id: string;
@@ -120,6 +121,7 @@ export default function Home() {
   }
 
   function handleOpenDeck(deck: Deck) {
+    haptic("light");
     setTransitionDir("forward");
     setCards(deck.cards);
     setActiveDeckId(deck.id);
@@ -240,28 +242,28 @@ export default function Home() {
 
             {/* Bottom tab bar — only show on home screens */}
             {state === "home" && (
-              <div className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
-                <div className="glass border-t border-white/8 flex">
+              <div className="fixed bottom-0 left-0 right-0 z-50">
+                <div className="glass border-t border-white/8 flex tab-bar-height">
                   <button
-                    onClick={() => setTab("home")}
-                    className={`flex-1 flex flex-col items-center py-3 gap-1 transition-colors ${tab === "home" ? "text-brand-500" : "text-white/30"}`}
+                    onClick={() => { haptic("light"); setTab("home"); }}
+                    className={`flex-1 flex flex-col items-center justify-start pt-3 gap-1 transition-colors ${tab === "home" ? "text-brand-500" : "text-white/30"}`}
                   >
-                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
                       <path d="M3 9.5L11 3L19 9.5V19C19 19.6 18.6 20 18 20H14V15H8V20H4C3.4 20 3 19.6 3 19V9.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
                     </svg>
-                    <span className="text-xs font-medium">Home</span>
+                    <span className="text-xs font-semibold">Home</span>
                   </button>
                   <button
-                    onClick={() => setTab("friends")}
-                    className={`flex-1 flex flex-col items-center py-3 gap-1 transition-colors ${tab === "friends" ? "text-brand-500" : "text-white/30"}`}
+                    onClick={() => { haptic("light"); setTab("friends"); }}
+                    className={`flex-1 flex flex-col items-center justify-start pt-3 gap-1 transition-colors ${tab === "friends" ? "text-brand-500" : "text-white/30"}`}
                   >
-                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <svg width="24" height="24" viewBox="0 0 22 22" fill="none">
                       <circle cx="9" cy="7" r="3" stroke="currentColor" strokeWidth="1.5"/>
                       <path d="M3 19C3 16.2 5.7 14 9 14C12.3 14 15 16.2 15 19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                       <path d="M16 11C17.7 11 19 12.3 19 14C19 15.4 18.1 16.6 16.8 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                       <path d="M19 19C19 17.4 17.9 16 16.4 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                     </svg>
-                    <span className="text-xs font-medium">Friends</span>
+                    <span className="text-xs font-semibold">Friends</span>
                   </button>
                 </div>
               </div>

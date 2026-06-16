@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import type { Flashcard } from "@/app/page";
 import Confetti from "./Confetti";
 import MistakeReview from "./MistakeReview";
+import { haptic } from "@/lib/haptics";
 
 type Mistake = { question: string; correctAnswer: string; userAnswer: string };
 
@@ -74,8 +75,10 @@ export default function QuizMode({ cards, onBack, onComplete, language }: Props)
     const isCorrect = option === question.correct;
     setAnswerState(isCorrect ? "correct" : "wrong");
     if (isCorrect) {
+      haptic("light");
       setScore((s) => s + 1);
     } else {
+      haptic("heavy");
       setShaking(true);
       setTimeout(() => setShaking(false), 400);
       setMistakes((m) => [...m, {
