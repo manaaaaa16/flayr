@@ -225,7 +225,25 @@ export default function HomeScreen({ decks, user, streak, profile, onProfileUpda
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const url = `${window.location.origin}/deck/${deck.id}`;
+                            navigator.clipboard.writeText(url);
+                            // brief visual feedback handled by parent
+                          }}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-white/20 hover:text-brand-500 hover:bg-brand-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                          aria-label="Share deck"
+                          title="Copy share link"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <circle cx="11" cy="2.5" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                            <circle cx="11" cy="11.5" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                            <circle cx="3" cy="7" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                            <path d="M4.4 6.2L9.6 3.3M4.4 7.8L9.6 10.7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); confirmDelete(deck.id); }}
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
