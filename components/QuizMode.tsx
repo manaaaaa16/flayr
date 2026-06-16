@@ -116,37 +116,51 @@ export default function QuizMode({ cards, onBack, onComplete, language }: Props)
   if (finished) {
     const pct = Math.round((score / cards.length) * 100);
     const grade =
-      pct >= 90 ? { label: "Excellent!", color: "text-green-400", bg: "bg-green-500/10 border-green-500/20" } :
-      pct >= 70 ? { label: "Good job!", color: "text-brand-500", bg: "bg-brand-500/10 border-brand-500/20" } :
-      pct >= 50 ? { label: "Keep going!", color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/20" } :
-      { label: "Keep practicing", color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" };
+      pct >= 90 ? { label: "Excellent!", sublabel: "You're on fire", color: "text-green-400", ring: "border-green-500/40", glow: "rgba(16,185,129,0.12)" } :
+      pct >= 70 ? { label: "Good job!", sublabel: "Keep it up", color: "text-brand-500", ring: "border-brand-500/40", glow: "rgba(79,99,255,0.12)" } :
+      pct >= 50 ? { label: "Almost there!", sublabel: "A bit more practice", color: "text-yellow-400", ring: "border-yellow-500/40", glow: "rgba(234,179,8,0.10)" } :
+      { label: "Keep going!", sublabel: "You'll get it next time", color: "text-orange-400", ring: "border-orange-500/40", glow: "rgba(249,115,22,0.10)" };
 
     return (
-      <div className="flex flex-col items-center justify-center flex-1 px-6 text-center animate-fade-in">
+      <div className="flex flex-col items-center justify-center flex-1 px-6 text-center animate-fade-in pb-10">
         <Confetti trigger={confetti} />
-        <div className={`w-24 h-24 rounded-3xl border flex items-center justify-center mb-6 ${grade.bg}`}>
-          <span className={`text-4xl font-extrabold ${grade.color} count-up`}>
-            <CountUp value={pct} />%
-          </span>
+
+        {/* Glow */}
+        <div className="fixed inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 50% 30%, ${grade.glow} 0%, transparent 65%)` }} />
+
+        {/* Score ring */}
+        <div className="relative mb-8">
+          <div className={`w-36 h-36 rounded-full border-2 ${grade.ring} flex flex-col items-center justify-center`}
+               style={{ background: "rgba(255,255,255,0.03)" }}>
+            <span className={`text-5xl font-extrabold ${grade.color} count-up`}>
+              <CountUp value={pct} />
+            </span>
+            <span className={`text-lg font-bold ${grade.color} opacity-70`}>%</span>
+          </div>
+          {/* Orbit dot */}
+          <div className={`absolute top-2 right-2 w-3 h-3 rounded-full ${grade.color.replace("text-", "bg-")} opacity-60`} />
         </div>
 
-        <h2 className="text-3xl font-extrabold tracking-tight">{grade.label}</h2>
-        <p className="text-white/40 mt-2 text-base">
-          {score} / {cards.length} correct
-        </p>
+        <h2 className="text-3xl font-extrabold tracking-tight text-white">{grade.label}</h2>
+        <p className="text-white/35 mt-1 text-base">{grade.sublabel}</p>
 
-        <div className="mt-8 grid grid-cols-2 gap-4 w-full max-w-xs">
+        {/* Stats row */}
+        <div className="mt-8 grid grid-cols-3 gap-3 w-full max-w-xs">
           <div className="glass rounded-2xl p-4 text-center count-up">
-            <p className="text-3xl font-bold text-green-400"><CountUp value={score} /></p>
-            <p className="text-white/40 text-sm mt-1">Correct</p>
+            <p className="text-2xl font-bold text-green-400"><CountUp value={score} /></p>
+            <p className="text-white/35 text-xs mt-1">Correct</p>
           </div>
-          <div className="glass rounded-2xl p-4 text-center count-up" style={{ animationDelay: "0.1s" }}>
-            <p className="text-3xl font-bold text-red-400"><CountUp value={cards.length - score} /></p>
-            <p className="text-white/40 text-sm mt-1">Wrong</p>
+          <div className="glass rounded-2xl p-4 text-center count-up" style={{ animationDelay: "0.08s" }}>
+            <p className="text-2xl font-bold text-red-400"><CountUp value={cards.length - score} /></p>
+            <p className="text-white/35 text-xs mt-1">Wrong</p>
+          </div>
+          <div className="glass rounded-2xl p-4 text-center count-up" style={{ animationDelay: "0.16s" }}>
+            <p className="text-2xl font-bold text-white/70"><CountUp value={cards.length} /></p>
+            <p className="text-white/35 text-xs mt-1">Total</p>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 w-full max-w-xs">
+        <div className="mt-6 flex flex-col gap-3 w-full max-w-xs">
           {mistakes.length > 0 && (
             <button
               onClick={() => setShowReview(true)}
@@ -157,13 +171,13 @@ export default function QuizMode({ cards, onBack, onComplete, language }: Props)
           )}
           <button
             onClick={handleRestart}
-            className="w-full py-4 rounded-2xl glass border border-white/10 text-white font-semibold text-base active:scale-[0.98] transition-transform"
+            className={`w-full py-4 rounded-2xl border text-white font-semibold text-base active:scale-[0.98] transition-transform ${mistakes.length === 0 ? "bg-brand-500 border-transparent" : "glass border-white/10"}`}
           >
             Retry Quiz
           </button>
           <button
             onClick={onBack}
-            className="w-full py-4 rounded-2xl glass text-white/50 font-medium text-base active:scale-[0.98] transition-transform"
+            className="w-full py-4 rounded-2xl glass text-white/45 font-medium text-base active:scale-[0.98] transition-transform"
           >
             Back to Flashcards
           </button>
