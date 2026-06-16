@@ -11,6 +11,7 @@ type Props = {
   cards: Flashcard[];
   onBack: () => void;
   onComplete: (scorePct: number) => void;
+  language: string;
 };
 
 type AnswerState = "idle" | "correct" | "wrong";
@@ -49,7 +50,7 @@ function CountUp({ value, duration = 800 }: { value: number; duration?: number }
   return <>{display}</>;
 }
 
-export default function QuizMode({ cards, onBack, onComplete }: Props) {
+export default function QuizMode({ cards, onBack, onComplete, language }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [answerState, setAnswerState] = useState<AnswerState>("idle");
@@ -109,7 +110,7 @@ export default function QuizMode({ cards, onBack, onComplete }: Props) {
   }
 
   if (showReview) {
-    return <MistakeReview mistakes={mistakes} onClose={() => setShowReview(false)} />;
+    return <MistakeReview mistakes={mistakes} language={language} onClose={() => setShowReview(false)} />;
   }
 
   if (finished) {

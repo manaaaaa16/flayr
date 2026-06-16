@@ -175,11 +175,13 @@ export default function Home() {
         ) : (
           <>
             {/* Main screens */}
-            {state === "home" && tab === "home" && (
+            {state === "home" && tab === "home" && profile && (
               <HomeScreen
                 decks={decks}
                 user={user}
                 streak={streak}
+                profile={profile}
+                onProfileUpdated={setProfile}
                 onNewScan={() => setState("capture")}
                 onOpenDeck={handleOpenDeck}
                 onDeleteDeck={handleDeleteDeck}
@@ -210,6 +212,7 @@ export default function Home() {
                 onCardsUpdated={handleCardsUpdated}
                 onBack={handleGoHome}
                 onQuizComplete={handleQuizComplete}
+                language={profile?.language || "en"}
               />
             )}
 

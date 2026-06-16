@@ -5,7 +5,21 @@ export type Profile = {
   name: string;
   avatarUrl: string | null;
   friendCode: string;
+  language: string;
 };
+
+export const LANGUAGES = [
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "it", label: "Italiano", flag: "🇮🇹" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "fr", label: "Français", flag: "🇫🇷" },
+  { code: "de", label: "Deutsch", flag: "🇩🇪" },
+  { code: "pt", label: "Português", flag: "🇵🇹" },
+];
+
+export async function updateLanguage(userId: string, language: string): Promise<void> {
+  await supabase.from("profiles").update({ language }).eq("user_id", userId);
+}
 
 export type LeaderboardEntry = {
   userId: string;
@@ -42,6 +56,7 @@ export async function getOrCreateProfile(
       name: existing.name,
       avatarUrl: existing.avatar_url,
       friendCode: existing.friend_code,
+      language: existing.language || "en",
     };
   }
 
@@ -71,6 +86,7 @@ export async function getOrCreateProfile(
     name: profile.name,
     avatarUrl: profile.avatar_url,
     friendCode: profile.friend_code,
+    language: profile.language || "en",
   };
 }
 

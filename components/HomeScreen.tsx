@@ -4,12 +4,16 @@ import { useState } from "react";
 import type { Deck } from "@/lib/storage";
 import { getMastery } from "@/lib/storage";
 import type { StreakData } from "@/lib/streaks";
+import type { Profile } from "@/lib/friends";
+import { LANGUAGES, updateLanguage } from "@/lib/friends";
 import type { User } from "@supabase/supabase-js";
 
 type Props = {
   decks: Deck[];
   user: User;
   streak: StreakData;
+  profile: Profile;
+  onProfileUpdated: (p: Profile) => void;
   onNewScan: () => void;
   onOpenDeck: (deck: Deck) => void;
   onDeleteDeck: (id: string) => void;
@@ -28,8 +32,17 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString("en", { month: "short", day: "numeric" });
 }
 
-export default function HomeScreen({ decks, user, streak, onNewScan, onOpenDeck, onDeleteDeck, onSignOut }: Props) {
+export default function HomeScreen({ decks, user, streak, profile, onProfileUpdated, onNewScan, onOpenDeck, onDeleteDeck, onSignOut }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showLangPicker, setShowLangPicker] = useState(false);
+
+  async function handleLanguageSelect(code: string) {
+    await updateLanguage(profile.userId, code);
+    onProfileUpdated({ ...profile, language: code });
+    setShowLangPicker(false);
+  }
+
+  const currentLang = LANGUAGES.find(l => l.code === profile.language) || LANGUAGES[0];
 
   function confirmDelete(id: string) {
     setDeletingId(id);
@@ -53,7 +66,7 @@ export default function HomeScreen({ decks, user, streak, onNewScan, onOpenDeck,
             Hey {user.user_metadata?.name?.split(" ")[0] || "there"}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Streak badge */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass">
             <span className={streak.currentStreak >= 30 ? "flame-xl" : streak.currentStreak >= 7 ? "flame-lg" : "text-base"}>🔥</span>
@@ -62,6 +75,32 @@ export default function HomeScreen({ decks, user, streak, onNewScan, onOpenDeck,
               <span className="text-blue-400 text-xs ml-0.5">❄️</span>
             )}
           </div>
+
+          {/* Language picker */}
+          <div className="relative">
+            <button
+              onClick={() => setShowLangPicker(v => !v)}
+              className="px-3 py-1.5 rounded-xl glass text-sm active:scale-95 transition-transform"
+            >
+              {currentLang.flag}
+            </button>
+            {showLangPicker && (
+              <div className="absolute right-0 top-10 z-50 glass rounded-2xl border border-white/10 overflow-hidden w-44 shadow-xl">
+                {LANGUAGES.map(l => (
+                  <button
+                    key={l.code}
+                    onClick={() => handleLanguageSelect(l.code)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors hover:bg-white/5 ${profile.language === l.code ? "text-brand-500 font-semibold" : "text-white/70"}`}
+                  >
+                    <span>{l.flag}</span>
+                    <span>{l.label}</span>
+                    {profile.language === l.code && <span className="ml-auto text-brand-500">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={onSignOut}
             className="px-3 py-1.5 rounded-lg glass text-white/30 text-xs hover:text-white/60 transition-colors"

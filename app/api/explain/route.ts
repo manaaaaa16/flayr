@@ -6,7 +6,7 @@ export const maxDuration = 30;
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
-  const { mistakes } = await req.json();
+  const { mistakes, language = "en" } = await req.json();
 
   if (!mistakes || !Array.isArray(mistakes) || mistakes.length === 0) {
     return NextResponse.json({ error: "No mistakes provided" }, { status: 400 });
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     messages: [
       {
         role: "user",
-        content: `A student got these flashcard questions wrong in a quiz. For each one, write a short, friendly explanation (2-3 sentences) of why the correct answer is right and help them remember it. Use simple language.
+        content: `A student got these flashcard questions wrong in a quiz. For each one, write a short, friendly explanation (2-3 sentences) of why the correct answer is right and help them remember it. Use simple language. Respond in the language with code "${language}" (e.g. "it" = Italian, "en" = English, "es" = Spanish, "fr" = French, "de" = German, "pt" = Portuguese).
 
 ${mistakeList}
 

@@ -10,10 +10,11 @@ type Mistake = {
 
 type Props = {
   mistakes: Mistake[];
+  language: string;
   onClose: () => void;
 };
 
-export default function MistakeReview({ mistakes, onClose }: Props) {
+export default function MistakeReview({ mistakes, language, onClose }: Props) {
   const [explanations, setExplanations] = useState<string[]>([]);
   const limited = mistakes.slice(0, 5);
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,7 @@ export default function MistakeReview({ mistakes, onClose }: Props) {
         const res = await fetch("/api/explain", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mistakes: limited }),
+          body: JSON.stringify({ mistakes: limited, language }),
         });
         const data = await res.json();
         console.log("explain response:", data);

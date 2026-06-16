@@ -12,9 +12,10 @@ type Props = {
   onCardsUpdated: (cards: Flashcard[]) => void;
   onBack: () => void;
   onQuizComplete: (scorePct: number) => void;
+  language: string;
 };
 
-export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onBack, onQuizComplete }: Props) {
+export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onBack, onQuizComplete, language }: Props) {
   const [cards, setCards] = useState<Flashcard[]>(initialCards);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completed, setCompleted] = useState(false);
@@ -143,7 +144,7 @@ export default function FlashcardDeck({ cards: initialCards, onCardsUpdated, onB
       </div>
 
       {mode === "quiz" ? (
-        <QuizMode cards={cards} onBack={() => setMode("cards")} onComplete={(pct) => onQuizComplete(pct)} />
+        <QuizMode cards={cards} onBack={() => setMode("cards")} onComplete={(pct) => onQuizComplete(pct)} language={language} />
       ) : (
         <>
           {/* Progress bar */}
